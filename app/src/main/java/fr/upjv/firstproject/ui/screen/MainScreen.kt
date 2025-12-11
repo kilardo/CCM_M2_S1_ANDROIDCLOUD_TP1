@@ -1,5 +1,6 @@
 package fr.upjv.firstproject.ui.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,18 +17,36 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import firebase.RemoteConfigManager   // ⬅️ à ajouter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     onButtonClick: () -> Unit,
 ) {
+    val context = LocalContext.current
+    var versionsValue by remember { mutableStateOf(RemoteConfigManager.getVersionsValue()) }
+
+    LaunchedEffect(Unit) {
+        RemoteConfigManager.fetchAndActivate { isSuccess ->
+            if (isSuccess) {
+                versionsValue = RemoteConfigManager.getVersionsValue()
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -50,7 +69,6 @@ fun MainScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top,
             ) {
-                // Texte en haut
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -70,10 +88,9 @@ fun MainScreen(
                     )
                 }
 
-                // 🔽 espace flexible occupé par l'image
                 Box(
                     modifier = Modifier
-                        .weight(1f)          // prend tout l’espace entre le texte et le bouton
+                        .weight(1f)
                         .fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
@@ -81,19 +98,28 @@ fun MainScreen(
                         model = "https://giffiles.alphacoders.com/216/216414.gif",
                         contentDescription = "Android dance",
                         modifier = Modifier
-                            .fillMaxWidth(0.9f)          // 90% de la largeur
-                            .height(260.dp),             // hauteur max raisonnable
+                            .fillMaxWidth(0.9f)
+                            .height(260.dp),
                         contentScale = ContentScale.Crop
                     )
                 }
 
-                // Bouton en bas
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     ElevatedButton(
-                        onClick = onButtonClick,
+                        onClick = {
+                            if (versionsValue) {
+                                onButtonClick()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Cette fonctionnalité est pour l'instant désactivée",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        },
                     ) {
                         Text(
                             text = "Voir les versions Android",

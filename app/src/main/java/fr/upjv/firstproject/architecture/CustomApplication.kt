@@ -2,6 +2,7 @@ package fr.upjv.firstproject.architecture
 
 import android.app.Application
 import androidx.room.Room
+import firebase.RemoteConfigManager
 import fr.upjv.firstproject.data.local.CustomRoomDatabase
 
 class CustomApplication : Application() {
@@ -22,5 +23,6 @@ class CustomApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        RemoteConfigManager.init()
     }
 }
